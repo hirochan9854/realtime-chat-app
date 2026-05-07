@@ -7,14 +7,24 @@ import { MessageItem } from './message-item'
 type Props = {
   messages: MessageWithUser[]
   currentUserId: string
+  isLoading: boolean
 }
 
-export function MessageList({ messages, currentUserId }: Props) {
+export function MessageList({ messages, currentUserId, isLoading }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: messages triggers scroll, not used inside body
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <p className="text-sm text-muted-foreground animate-pulse">読み込み中...</p>
+      </div>
+    )
+  }
 
   if (messages.length === 0) {
     return (

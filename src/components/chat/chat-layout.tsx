@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useChannels } from '@/hooks/use-channels'
 import { ChannelSidebar } from './channel-sidebar'
 import { MessageArea } from './message-area'
 
@@ -18,14 +19,15 @@ type Props = {
 }
 
 export function ChatLayout({ initialChannels, currentUser }: Props) {
+  const channels = useChannels(initialChannels)
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null)
 
-  const selectedChannel = initialChannels.find((c) => c.id === selectedChannelId) ?? null
+  const selectedChannel = channels.find((c) => c.id === selectedChannelId) ?? null
 
   return (
     <div className="flex flex-1 overflow-hidden">
       <ChannelSidebar
-        initialChannels={initialChannels}
+        channels={channels}
         selectedId={selectedChannelId}
         onSelect={setSelectedChannelId}
       />

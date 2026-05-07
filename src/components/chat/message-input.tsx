@@ -43,7 +43,9 @@ export function MessageInput({ onSend, disabled }: Props) {
       const { data, error } = await supabase.storage.from('chat-images').upload(path, file)
       if (error) throw error
       const { data: urlData } = supabase.storage.from('chat-images').getPublicUrl(data.path)
-      await onSend('', urlData.publicUrl)
+      startTransition(async () => {
+        await onSend('', urlData.publicUrl)
+      })
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : '画像のアップロードに失敗しました')
     } finally {

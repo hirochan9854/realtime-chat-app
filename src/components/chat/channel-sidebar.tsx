@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useChannels } from '@/hooks/use-channels'
 import { CreateChannelDialog } from './create-channel-dialog'
 import { Button } from '@/components/ui/button'
 
@@ -12,13 +11,12 @@ type Channel = {
 }
 
 type Props = {
-  initialChannels: Channel[]
+  channels: Channel[]
   selectedId: string | null
   onSelect: (id: string) => void
 }
 
-export function ChannelSidebar({ initialChannels, selectedId, onSelect }: Props) {
-  const channels = useChannels(initialChannels)
+export function ChannelSidebar({ channels, selectedId, onSelect }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false)
 
   return (

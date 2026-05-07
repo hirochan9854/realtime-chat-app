@@ -13,7 +13,7 @@ type Props = {
 }
 
 export function MessageArea({ channelId, channelName, currentUser }: Props) {
-  const { messages, send } = useMessages(channelId, currentUser)
+  const { messages, send, isLoading } = useMessages(channelId, currentUser)
 
   if (!channelId) {
     return (
@@ -28,7 +28,7 @@ export function MessageArea({ channelId, channelName, currentUser }: Props) {
       <div className="shrink-0 border-b px-4 py-3">
         <span className="font-semibold"># {channelName}</span>
       </div>
-      <MessageList messages={messages} currentUserId={currentUser.id} />
+      <MessageList messages={messages} currentUserId={currentUser.id} isLoading={isLoading} />
       <MessageInput onSend={send} />
     </div>
   )

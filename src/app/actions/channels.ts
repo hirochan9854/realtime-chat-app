@@ -9,7 +9,7 @@ const schema = z.object({
   name: z.string().min(1, 'チャンネル名を入力してください').max(50, '50文字以内で入力してください'),
 })
 
-export async function createChannel(name: string): Promise<{ error?: string }> {
+export async function createChannel(name: string): Promise<{ error?: string; success?: boolean }> {
   const result = schema.safeParse({ name })
   if (!result.success) {
     return { error: result.error.errors[0].message }
@@ -30,5 +30,5 @@ export async function createChannel(name: string): Promise<{ error?: string }> {
   }
 
   revalidatePath('/chat')
-  return {}
+  return { success: true }
 }
