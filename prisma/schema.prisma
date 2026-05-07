@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id        String    @id @db.Uuid
+  username  String
+  createdAt DateTime  @default(now()) @map("created_at")
+  channels  Channel[]
+  messages  Message[]
+
+  @@map("profiles")
+}
+
+model Channel {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String    @unique
+  createdBy String?   @map("created_by") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at")
+  creator   Profile?  @relation(fields: [createdBy], references: [id])
+  messages  Message[]
+
+  @@map("channels")
+}
+
+model Message {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  channelId String   @map("channel_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  content   String?
+  imageUrl  String?  @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user      Profile  @relation(fields: [userId], references: [id])
+
+  @@map("messages")
+}
