@@ -1,0 +1,111 @@
+# PrismaClient Constructor
+
+Configure Prisma Client when instantiating.
+
+## Basic Instantiation
+
+```typescript
+import { PrismaClient } from '../generated/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL
+})
+
+const prisma = new PrismaClient({ adapter })
+```
+
+## Constructor Options
+
+### adapter (Required for the SQL provider workflow)
+
+Driver adapter instance:
+
+```typescript
+import { PrismaPg } from '@prisma/adapter-pg'
+
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL
+})
+
+const prisma = new PrismaClient({ adapter })
+```
+
+### log
+
+Configure logging:
+
+```typescript
+const prisma = new PrismaClient({
+  adapter,
+  log: ['query', 'info', 'warn', 'error'],
+})
+```
+
+### transactionOptions
+
+Default transaction settings:
+
+```typescript
+const prisma = new PrismaClient({
+  adapter,
+  transactionOptions: {
+    maxWait: 5000,      // Max wait to acquire transaction (ms)
+    timeout: 10000,     // Max transaction duration (ms)
+    isolationLevel: 'Serializable',
+  },
+})
+```
+
+## Singleton Pattern
+
+Prevent multiple client instances in development:
+
+```typescript
+// lib/prisma.ts
+import { PrismaClient } from '../generated/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined
+}
+
+function createPrismaClient() {
+  const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL!
+  })
+  return new PrismaClient({ adapter })
+}
+
+export const prisma = globalForPrisma.prisma ?? createPrismaClient()
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma
+}
+```
+
+## Next.js Pattern
+
+```typescript
+// lib/prisma.ts
+import { PrismaClient } from '@/generated/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+
+const prismaClientSingleton = () => {
+  return new PrismaClient({ adapter: new PrismaPg({
+    connectionString: process.env.DATABASE_URL!
+  }) })
+}
+
+declare const globalThis: {
+  prismaGlobal: ReturnType<typeof prismaClientSingleton>
+} & typeof global
+
+const prisma = globalThis.prismaGlobal ?? prismaClientSingleton()
+
+export default prisma
+
+if (process.env.NODE_ENV !== 'production') {
+  globalThis.prismaGlobal = prisma
+}
+```

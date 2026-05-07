@@ -1,0 +1,5 @@
+- CQRS境界: features/ 以外から features/ をimportしない
+- shadcn/ui First: そのまま使う → 拡張 → 自作の順
+- Repository Mock: UI先行開発 → 実DB切替
+- next.config.ts: `cacheComponents: true` を必ず設定（Next.js 16 では `experimental.dynamicIO` の後継）
+- prisma.config.ts: Prisma v7 では `defineConfig` を使った設定ファイルが必要。`schema.prisma` の datasource URL は `prisma.config.ts` の `datasource.url` で上書きされる
