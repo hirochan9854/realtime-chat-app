@@ -9,6 +9,8 @@ type Channel = {
   createdAt: Date
 }
 
+type ChannelRow = { id: string; name: string; created_at: string }
+
 export function useChannels(initialChannels: Channel[]) {
   const [channels, setChannels] = useState(initialChannels)
 
@@ -19,9 +21,11 @@ export function useChannels(initialChannels: Channel[]) {
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'channels' },
-        (payload) => {
-          const newChannel = payload.new as Channel
-          setChannels((prev) => [...prev, newChannel])
+        (payload: { new: ChannelRow }) => {
+          setChannels((prev) => [
+            ...prev,
+            { id: payload.new.id, name: payload.new.name, createdAt: new Date(payload.new.created_at) },
+          ])
         },
       )
       .subscribe()

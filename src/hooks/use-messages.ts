@@ -44,8 +44,8 @@ export function useMessages(channelId: string | null, currentUser: CurrentUser) 
           table: 'messages',
           filter: `channel_id=eq.${channelId}`,
         },
-        async (payload) => {
-          const msgId = payload.new.id as string
+        async (payload: { new: { id: string } }) => {
+          const msgId = payload.new.id
           const fetched = await fetchMessageById(msgId).then((r) => r.message)
           if (fetched) {
             setMessages((prev) => (prev.some((m) => m.id === msgId) ? prev : [...prev, fetched]))

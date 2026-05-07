@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthenticatedUser } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
 const schema = z.object({
@@ -15,11 +15,8 @@ export async function createChannel(name: string): Promise<{ error?: string; suc
     return { error: result.error.errors[0].message }
   }
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { error: '認証が必要です' }
-  }
+  const user = await getAuthenticatedUser()
+  if (!user) return { error: '認証が必要です' }
 
   try {
     await prisma.channel.create({

@@ -1,7 +1,7 @@
 'use server'
 
 import { z } from 'zod'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthenticatedUser } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
 export type MessageWithUser = {
@@ -63,10 +63,7 @@ export async function sendMessage(
     return { error: result.error.errors[0].message }
   }
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getAuthenticatedUser()
   if (!user) return { error: '認証が必要です' }
 
   try {

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { Loader2, Paperclip } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { uploadChatImage } from '@/lib/storage'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -37,14 +37,10 @@ export function MessageInput({ onSend, disabled }: Props) {
     setUploadError(null)
     setUploading(true)
     try {
-      const supabase = createClient()
-      const ext = file.name.split('.').pop() ?? 'jpg'
-      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const { data, error } = await supabase.storage.from('chat-images').upload(path, file)
-      if (error) throw error
-      const { data: urlData } = supabase.storage.from('chat-images').getPublicUrl(data.path)
+      const result = await uploadChatImage(file)
+      if (result.error) throw new Error(result.error)
       startTransition(async () => {
-        await onSend('', urlData.publicUrl)
+        await onSend('', result.url ?? '')
       })
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : '画像のアップロードに失敗しました')
