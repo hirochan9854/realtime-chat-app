@@ -13,11 +13,12 @@ type Channel = {
 
 type Props = {
   initialChannels: Channel[]
+  selectedId: string | null
+  onSelect: (id: string) => void
 }
 
-export function ChannelSidebar({ initialChannels }: Props) {
+export function ChannelSidebar({ initialChannels, selectedId, onSelect }: Props) {
   const channels = useChannels(initialChannels)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
@@ -35,7 +36,7 @@ export function ChannelSidebar({ initialChannels }: Props) {
             <button
               key={channel.id}
               type="button"
-              onClick={() => setSelectedId(channel.id)}
+              onClick={() => onSelect(channel.id)}
               className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-accent ${
                 selectedId === channel.id
                   ? 'border-l-2 border-primary bg-primary/10 font-medium text-primary'
