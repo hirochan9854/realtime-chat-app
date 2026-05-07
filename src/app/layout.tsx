@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Realtime Chat App",
+  title: "Chat App",
   description: "Supabase Realtime を活用したリアルタイムチャットアプリ",
 };
 
