@@ -7,15 +7,21 @@ import { prisma } from '@/lib/prisma'
 export type MessageWithUser = {
   id: string
   content: string | null
+  imageUrl: string | null
   createdAt: Date
   userId: string
   channelId: string
   user: { username: string }
 }
 
-const sendSchema = z.object({
-  content: z.string().min(1).max(2000),
-})
+const sendSchema = z
+  .object({
+    content: z.string().max(2000).optional(),
+    imageUrl: z.string().url().optional(),
+  })
+  .refine((data) => data.content?.trim() || data.imageUrl, {
+    message: 'メッセージまたは画像が必要です',
+  })
 
 export async function fetchMessages(
   channelId: string,
@@ -50,8 +56,9 @@ export async function fetchMessageById(
 export async function sendMessage(
   channelId: string,
   content: string,
+  imageUrl?: string,
 ): Promise<{ message?: MessageWithUser; error?: string }> {
-  const result = sendSchema.safeParse({ content })
+  const result = sendSchema.safeParse({ content: content || undefined, imageUrl })
   if (!result.success) {
     return { error: result.error.errors[0].message }
   }
@@ -64,7 +71,12 @@ export async function sendMessage(
 
   try {
     const message = await prisma.message.create({
-      data: { channelId, userId: user.id, content: result.data.content },
+      data: {
+        channelId,
+        userId: user.id,
+        content: content.trim() || null,
+        imageUrl: imageUrl ?? null,
+      },
       include: { user: { select: { username: true } } },
     })
     return { message }

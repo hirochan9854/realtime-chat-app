@@ -44,9 +44,10 @@ export function useMessages(channelId: string | null, currentUser: CurrentUser) 
             return prev
           })
           const r = await fetchMessageById(msgId)
-          if (!r.error && r.message) {
+          const fetched = r.message
+          if (!r.error && fetched) {
             setMessages((prev) =>
-              prev.some((m) => m.id === msgId) ? prev : [...prev, r.message!],
+              prev.some((m) => m.id === msgId) ? prev : [...prev, fetched],
             )
           }
         },
@@ -58,12 +59,13 @@ export function useMessages(channelId: string | null, currentUser: CurrentUser) 
     }
   }, [channelId])
 
-  const send = async (content: string) => {
+  const send = async (content: string, imageUrl?: string) => {
     if (!channelId) return
     const tempId = `temp-${Date.now()}`
     const optimistic: MessageWithUser = {
       id: tempId,
-      content,
+      content: content.trim() || null,
+      imageUrl: imageUrl ?? null,
       channelId,
       userId: currentUser.id,
       createdAt: new Date(),
@@ -71,11 +73,12 @@ export function useMessages(channelId: string | null, currentUser: CurrentUser) 
     }
     setMessages((prev) => [...prev, optimistic])
 
-    const r = await sendMessage(channelId, content)
-    if (r.error || !r.message) {
+    const r = await sendMessage(channelId, content, imageUrl)
+    const confirmed = r.message
+    if (r.error || !confirmed) {
       setMessages((prev) => prev.filter((m) => m.id !== tempId))
     } else {
-      setMessages((prev) => prev.map((m) => (m.id === tempId ? r.message! : m)))
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? confirmed : m)))
     }
   }
 

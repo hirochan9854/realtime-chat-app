@@ -17,7 +17,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
-    "db:setup": "prisma db push && psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -f supabase/setup-realtime.sql",
+    "db:setup": "prisma db push && psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -f supabase/setup-realtime.sql && psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -f supabase/setup-storage.sql",
     "db:studio": "prisma studio",
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset",
