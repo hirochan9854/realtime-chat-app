@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AuthForm } from '@/components/auth/auth-form'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default async function LoginPage() {
   const supabase = await createClient()
@@ -11,16 +12,16 @@ export default async function LoginPage() {
   if (user) redirect('/chat')
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="w-full max-w-md space-y-6 px-4">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Realtime Chat</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            アカウントにログインまたは新規作成
-          </p>
-        </div>
-        <AuthForm />
-      </div>
+    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="text-center pb-2">
+          <CardTitle className="text-2xl">Realtime Chat</CardTitle>
+          <CardDescription>アカウントにログインまたは新規作成</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AuthForm />
+        </CardContent>
+      </Card>
     </div>
   )
 }
