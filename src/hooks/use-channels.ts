@@ -14,6 +14,10 @@ type ChannelRow = { id: string; name: string; created_at: string }
 export function useChannels(initialChannels: Channel[]) {
   const [channels, setChannels] = useState(initialChannels)
 
+  const addChannel = (channel: Channel) => {
+    setChannels((prev) => (prev.some((c) => c.id === channel.id) ? prev : [...prev, channel]))
+  }
+
   useEffect(() => {
     const supabase = createClient()
     const subscription = supabase
@@ -22,10 +26,13 @@ export function useChannels(initialChannels: Channel[]) {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'channels' },
         (payload: { new: ChannelRow }) => {
-          setChannels((prev) => [
-            ...prev,
-            { id: payload.new.id, name: payload.new.name, createdAt: new Date(payload.new.created_at) },
-          ])
+          const { id, name, created_at } = payload.new
+          if (!id || !name) return
+          setChannels((prev) =>
+            prev.some((c) => c.id === id)
+              ? prev
+              : [...prev, { id, name, createdAt: new Date(created_at) }],
+          )
         },
       )
       .subscribe()
@@ -35,5 +42,5 @@ export function useChannels(initialChannels: Channel[]) {
     }
   }, [])
 
-  return channels
+  return { channels, addChannel }
 }

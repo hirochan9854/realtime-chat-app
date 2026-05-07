@@ -46,6 +46,7 @@ export function useMessages(channelId: string | null, currentUser: CurrentUser) 
         },
         async (payload: { new: { id: string } }) => {
           const msgId = payload.new.id
+          if (!msgId) return
           const fetched = await fetchMessageById(msgId).then((r) => r.message)
           if (fetched) {
             setMessages((prev) => (prev.some((m) => m.id === msgId) ? prev : [...prev, fetched]))
@@ -59,8 +60,8 @@ export function useMessages(channelId: string | null, currentUser: CurrentUser) 
     }
   }, [channelId])
 
-  const send = async (content: string, imageUrl?: string) => {
-    if (!channelId) return
+  const send = async (content: string, imageUrl?: string): Promise<{ error?: string }> => {
+    if (!channelId) return {}
     addOptimisticMessage({
       id: `temp-${Date.now()}`,
       content: content.trim() || null,
@@ -72,10 +73,12 @@ export function useMessages(channelId: string | null, currentUser: CurrentUser) 
     })
 
     const r = await sendMessage(channelId, content, imageUrl)
-    const confirmed = r.message
-    if (confirmed) {
+    if (r.error) return { error: r.error }
+    if (r.message) {
+      const confirmed = r.message
       setMessages((prev) => (prev.some((m) => m.id === confirmed.id) ? prev : [...prev, confirmed]))
     }
+    return {}
   }
 
   return { messages: optimisticMessages, send, isLoading }

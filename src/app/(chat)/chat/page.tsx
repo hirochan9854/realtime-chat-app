@@ -13,20 +13,24 @@ export default async function ChatPage() {
 
   if (!user) redirect("/login");
 
+  const fallbackUsername = user.email?.split("@")[0] ?? "Unknown";
+
   const [channels, profile] = await Promise.all([
     prisma.channel.findMany({
       orderBy: { createdAt: "asc" },
       select: { id: true, name: true, createdAt: true },
     }),
-    prisma.profile.findUnique({
+    prisma.profile.upsert({
       where: { id: user.id },
+      update: {},
+      create: { id: user.id, username: fallbackUsername },
       select: { username: true },
     }),
   ]);
 
   const currentUser = {
     id: user.id,
-    username: profile?.username ?? user.email ?? "Unknown",
+    username: profile.username,
   };
 
   return (

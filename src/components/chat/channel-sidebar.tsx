@@ -14,9 +14,10 @@ type Props = {
   channels: Channel[]
   selectedId: string | null
   onSelect: (id: string) => void
+  onChannelCreated: (channel: Channel) => void
 }
 
-export function ChannelSidebar({ channels, selectedId, onSelect }: Props) {
+export function ChannelSidebar({ channels, selectedId, onSelect, onChannelCreated }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
@@ -26,26 +27,27 @@ export function ChannelSidebar({ channels, selectedId, onSelect }: Props) {
           Channels
         </span>
       </div>
-      <div className="flex-1 overflow-y-auto py-2">
+      <ul className="flex-1 overflow-y-auto py-2 list-none">
         {channels.length === 0 ? (
-          <p className="px-4 py-2 text-sm text-muted-foreground">チャンネルがありません</p>
+          <li className="px-4 py-2 text-sm text-muted-foreground">チャンネルがありません</li>
         ) : (
           channels.map((channel) => (
-            <button
-              key={channel.id}
-              type="button"
-              onClick={() => onSelect(channel.id)}
-              className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-accent ${
-                selectedId === channel.id
-                  ? 'border-l-2 border-primary bg-primary/10 font-medium text-primary'
-                  : 'border-l-2 border-transparent text-foreground'
-              }`}
-            >
-              # {channel.name}
-            </button>
+            <li key={channel.id}>
+              <button
+                type="button"
+                onClick={() => onSelect(channel.id)}
+                className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-accent ${
+                  selectedId === channel.id
+                    ? 'border-l-2 border-primary bg-primary/10 font-medium text-primary'
+                    : 'border-l-2 border-transparent text-foreground'
+                }`}
+              >
+                # {channel.name}
+              </button>
+            </li>
           ))
         )}
-      </div>
+      </ul>
       <div className="border-t p-3">
         <Button
           variant="ghost"
@@ -57,7 +59,7 @@ export function ChannelSidebar({ channels, selectedId, onSelect }: Props) {
           New Channel
         </Button>
       </div>
-      <CreateChannelDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <CreateChannelDialog open={dialogOpen} onOpenChange={setDialogOpen} onChannelCreated={onChannelCreated} />
     </aside>
   )
 }

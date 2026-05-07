@@ -41,22 +41,6 @@ ALTER TABLE "messages" ADD CONSTRAINT "messages_channel_id_fkey" FOREIGN KEY ("c
 -- AddForeignKey
 ALTER TABLE "messages" ADD CONSTRAINT "messages_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "profiles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Supabase Auth と profiles テーブルを連動させるトリガー
--- auth.users に新規ユーザーが作成されたとき、自動で profiles にも挿入する
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
-AS $$
-BEGIN
-  INSERT INTO public.profiles (id, username)
-  VALUES (new.id, new.email);
-  RETURN new;
-END;
-$$;
-
-CREATE OR REPLACE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
 -- Realtime 有効化（channels / messages テーブルの変更をリアルタイム配信）
 ALTER PUBLICATION supabase_realtime ADD TABLE channels;
 ALTER PUBLICATION supabase_realtime ADD TABLE messages;

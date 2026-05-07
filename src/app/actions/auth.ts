@@ -54,11 +54,8 @@ export async function signUp(
   if (error) return { error: error.message }
   if (!data.user) return { error: 'ユーザー作成に失敗しました' }
 
-  // handle_new_user トリガーが email を username として profiles に INSERT 済み
-  // 入力された username に更新する
-  await prisma.profile.update({
-    where: { id: data.user.id },
-    data: { username: result.data.username },
+  await prisma.profile.create({
+    data: { id: data.user.id, username: result.data.username },
   })
 
   redirect('/chat')

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 type Props = {
-  onSend: (content: string, imageUrl?: string) => Promise<void>
+  onSend: (content: string, imageUrl?: string) => Promise<{ error?: string }>
   disabled?: boolean
 }
 
@@ -15,7 +15,7 @@ export function MessageInput({ onSend, disabled }: Props) {
   const [value, setValue] = useState('')
   const [isPending, startTransition] = useTransition()
   const [uploading, setUploading] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -25,8 +25,10 @@ export function MessageInput({ onSend, disabled }: Props) {
     const trimmed = value.trim()
     if (!trimmed || isBlocked) return
     setValue('')
+    setErrorMessage(null)
     startTransition(async () => {
-      await onSend(trimmed)
+      const r = await onSend(trimmed)
+      if (r.error) setErrorMessage(r.error)
       inputRef.current?.focus()
     })
   }
@@ -34,16 +36,17 @@ export function MessageInput({ onSend, disabled }: Props) {
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    setUploadError(null)
+    setErrorMessage(null)
     setUploading(true)
     try {
       const result = await uploadChatImage(file)
       if (result.error) throw new Error(result.error)
       startTransition(async () => {
-        await onSend('', result.url ?? '')
+        const r = await onSend('', result.url ?? '')
+        if (r.error) setErrorMessage(r.error)
       })
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : '画像のアップロードに失敗しました')
+      setErrorMessage(err instanceof Error ? err.message : '画像のアップロードに失敗しました')
     } finally {
       setUploading(false)
       e.target.value = ''
@@ -52,8 +55,8 @@ export function MessageInput({ onSend, disabled }: Props) {
 
   return (
     <div className="shrink-0 border-t">
-      {uploadError && (
-        <p className="px-3 pt-2 text-xs text-destructive">{uploadError}</p>
+      {errorMessage && (
+        <p className="px-3 pt-2 text-xs text-destructive">{errorMessage}</p>
       )}
       <div className="flex gap-2 p-3">
         <input

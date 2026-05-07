@@ -19,7 +19,7 @@ type Props = {
 }
 
 export function ChatLayout({ initialChannels, currentUser }: Props) {
-  const channels = useChannels(initialChannels)
+  const { channels, addChannel } = useChannels(initialChannels)
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null)
 
   const selectedChannel = channels.find((c) => c.id === selectedChannelId) ?? null
@@ -30,6 +30,7 @@ export function ChatLayout({ initialChannels, currentUser }: Props) {
         channels={channels}
         selectedId={selectedChannelId}
         onSelect={setSelectedChannelId}
+        onChannelCreated={addChannel}
       />
       <MessageArea
         channelId={selectedChannelId}
