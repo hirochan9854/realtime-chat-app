@@ -77,3 +77,47 @@
 - **Root Cause:** Prisma v7 からドライバーアダプターが必須になった
 - **Prevention:** Prisma v7 プロジェクト開始時は必ず `@prisma/adapter-pg` + `pg` も一緒にインストール
 - **Applied:** false
+
+### L-004: prisma db push --force-reset は Supabase の anon/authenticated GRANT を消去する
+- **Date:** 2026-05-07
+- **Category:** architecture
+- **Task:** TASK-007
+- **Context:** Supabase Realtime の `postgres_changes` を購読しているのに、INSERT イベントの `payload.new` が空オブジェクトになる現象
+- **Mistake:** `prisma db push --force-reset` で DB をリセットすると、Supabase ローカル開発環境が初期化時にセットしていた `GRANT SELECT ON public.* TO anon, authenticated` が一緒に消える。anon ロールが行を読めないので Realtime payload が空になる
+- **Correction:** `setup-realtime.sql` に `GRANT SELECT ON public.{channels,messages,profiles} TO anon, authenticated` を明示的に書く。`db:setup` で必ず再付与
+- **Root Cause:** `--force-reset` は public スキーマを DROP CASCADE するため、スキーマ依存の権限も全部消える。Supabase の初期化スクリプトは初回 `supabase start` のときだけ走るので、Prisma 側で reset するたびに再設定が必要
+- **Prevention:** Supabase + Prisma を併用するプロジェクトでは、`db:setup` の SQL に anon/authenticated の GRANT を必ず含める。Realtime payload が空のときは GRANT を疑う
+- **Applied:** false
+
+### L-005: Server Action の revalidatePath 後、Realtime subscription が race condition で自分の INSERT を取りこぼす
+- **Date:** 2026-05-07
+- **Category:** implementation
+- **Task:** TASK-007
+- **Context:** チャンネル作成時、自分が作ったチャンネルが Realtime 経由で UI に反映されず、リロードしないと出てこない
+- **Mistake:** Server Action 内で `revalidatePath('/chat')` を呼ぶと、Next.js の router refresh で client component が一瞬 re-mount され、`useEffect([])` 内の Realtime subscription が cleanup → 再 subscribe される。しかしその間に既に Postgres から INSERT イベントが配信済みなので、新しい subscription はそのイベントを受け取れない
+- **Correction:** 自分のアクションで作ったエンティティは Realtime に頼らず、Server Action のレスポンスで作成データを返却し、client 側で直接 state に反映する。Realtime は「他ユーザーの変更を受け取る」ためにだけ使う
+- **Root Cause:** Realtime subscription はリアルタイムストリームで、過去のイベントを replay しない。subscribe するタイミングがイベント発火後だと取りこぼす
+- **Prevention:** `createChannel` のような mutation 系の Server Action は `{ success: true }` ではなく `{ entity: ... }` を返すパターンに統一。client 側で `addEntity(state.entity)` のように直接 state を更新する
+- **Applied:** false
+
+### L-006: Supabase auth.users と profiles テーブルの同期が外れる対策は server component 側で upsert
+- **Date:** 2026-05-07
+- **Category:** architecture
+- **Task:** TASK-007
+- **Context:** DB を `--force-reset` した後、ブラウザの cookie に残った古いセッションでアクセスすると、`auth.users` には user がいるが `profiles` テーブルが空のため `messages.user_id → profiles.id` の外部キー違反でメッセージ送信が失敗する
+- **Mistake:** sign up 時にしか profile を作らない設計だと、auth.users と profiles の同期外れ（DB reset, トリガー削除, etc.）に対応できない
+- **Correction:** chat ページの server component で `prisma.profile.upsert({ where: { id: user.id }, update: {}, create: { id, username: emailLocal } })` を実行。プロフィールが無ければ自動作成
+- **Root Cause:** Supabase Auth スキーマと public スキーマは独立しており、auth 操作と DB 操作の間に保証されたトランザクション境界がない。トリガー削除 + DB reset で容易に同期が壊れる
+- **Prevention:** auth user → DB profile のマッピングが必要なアプリでは、保護されたページの entry point（server component）で profile の存在を確認・自動作成する。sign up の create だけに頼らない
+- **Applied:** false
+
+### L-007: useActionState / Server Action 系で silent error swallow に注意
+- **Date:** 2026-05-07
+- **Category:** implementation
+- **Task:** TASK-007
+- **Context:** メッセージ送信が失敗してもエラーが画面に出ず、ユーザーには「何も起きてない」ように見える
+- **Mistake:** `useMessages.send` が `sendMessage` の結果を `r.message` だけ見て、`r.error` を完全に無視。`MessageInput` 側も `await onSend()` の戻り値を捨てていた
+- **Correction:** mutation 系の hook は `Promise<{ error?: string }>` を返すように統一。UI 側で `r.error` を表示
+- **Root Cause:** Server Action のレスポンス型を `{ message?, error? }` のような discriminated union にしておきながら、呼び出し側が片方しか見ないと TypeScript ではエラーにならず silent fail する
+- **Prevention:** mutation 系 Server Action のレスポンスは必ず両方ハンドリング。hook も同じ型で返す。lint ルールで `await onSend()` の戻り値破棄を禁止すると尚良
+- **Applied:** false
