@@ -12,8 +12,8 @@ export default async function LoginPage() {
   if (user) redirect('/chat')
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
-      <Card className="w-full max-w-md shadow-lg">
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
+      <Card className="w-full max-w-md border shadow-md">
         <CardHeader className="text-center pb-2">
           <CardTitle className="text-2xl">Realtime Chat</CardTitle>
           <CardDescription>アカウントにログインまたは新規作成</CardDescription>

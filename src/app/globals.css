@@ -49,9 +49,12 @@
 }
 
 @layer base {
-  * {
-    border-color: var(--border);
+  *, *::before, *::after {
     box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
   }
 
   body {
