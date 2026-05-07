@@ -45,4 +45,35 @@
 
 ## Lessons
 
-(ここに教訓が追記されていく)
+### L-001: Prisma v7 は schema.prisma から url/directUrl が廃止
+- **Date:** 2026-05-07
+- **Category:** architecture
+- **Task:** TASK-001
+- **Context:** `prisma generate` を実行したら P1012 エラー
+- **Mistake:** `prisma/schema.prisma` の datasource に `url = env("DATABASE_URL")` を書いていた
+- **Correction:** `url` と `directUrl` を schema.prisma から削除。`prisma.config.ts` で URL を管理
+- **Root Cause:** Prisma v7 で datasource URL の管理場所が変更されたことを知らなかった
+- **Prevention:** Prisma v7 では schema.prisma の datasource は `provider` のみ。URL は prisma.config.ts の `datasource.url` で指定。PrismaClient は `@prisma/adapter-pg` 経由で接続
+- **Applied:** false
+
+### L-003: prisma migrate dev より prisma db push で開発する
+- **Date:** 2026-05-07
+- **Category:** implementation
+- **Task:** TASK-002
+- **Context:** ローカル開発環境でのスキーマ反映方法の選択
+- **Mistake:** `prisma migrate dev` でマイグレーションファイルを管理しようとした
+- **Correction:** `prisma db push` を使用してスキーマを直接DBに反映
+- **Root Cause:** デモアプリでは migration ファイル管理よりも素早いイテレーションが優先
+- **Prevention:** ローカル開発・プロトタイプは `db:push`。本番マイグレーション管理が必要になったら `migrate dev` に切り替え
+- **Applied:** false
+
+### L-002: Prisma v7 は PrismaClient にドライバーアダプターが必要
+- **Date:** 2026-05-07
+- **Category:** implementation
+- **Task:** TASK-001
+- **Context:** Prisma v7 で PrismaClient をインスタンス化する際
+- **Mistake:** `new PrismaClient()` だけでは動作しない
+- **Correction:** `@prisma/adapter-pg` と `pg` をインストールし、`new PrismaClient({ adapter: new PrismaPg({ connectionString }) })` とする
+- **Root Cause:** Prisma v7 からドライバーアダプターが必須になった
+- **Prevention:** Prisma v7 プロジェクト開始時は必ず `@prisma/adapter-pg` + `pg` も一緒にインストール
+- **Applied:** false
