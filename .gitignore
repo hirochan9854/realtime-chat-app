@@ -49,3 +49,6 @@ next-env.d.ts
 
 # supabase local state
 supabase/.branches/
+
+# prisma generated client
+/src/generated/

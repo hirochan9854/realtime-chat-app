@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@/generated/prisma/client'
 import { getAuthenticatedUser } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 

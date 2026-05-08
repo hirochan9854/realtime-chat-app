@@ -1,4 +1,4 @@
-import type { Channel, Message, Profile } from '@prisma/client'
+import type { Channel, Message, Profile } from '@/generated/prisma/client'
 
 export type { Channel, Message, Profile }
 
